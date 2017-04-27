@@ -10,10 +10,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.library.bean.MyJsonObject;
-import com.library.dao.ManagerDao;
+import com.library.dao.BorrowDao;
+import com.library.dao.ReaderDao;
 
-@WebServlet("/ManagerChangePassword")
-public class ManagerChangePassword extends HttpServlet {
+@WebServlet("/BorrowBook")
+public class BorrowBook extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
 	public void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -26,25 +27,31 @@ public class ManagerChangePassword extends HttpServlet {
 		PrintWriter writer = response.getWriter();
 		MyJsonObject jsonObject = new MyJsonObject();
 
-		String account = request.getParameter("account");
-		String password = request.getParameter("password");
-		String newPassword = request.getParameter("newPassword");
-
-		boolean isSuccess = new ManagerDao().login(account, password);
-		if (isSuccess) {
-			boolean result = new ManagerDao().changePassword(account,
-					newPassword);
-			if (result) {
-				jsonObject.setStatus(1);
-				jsonObject.setMessage("修改密码成功");
-			} else {
+		String readerId = request.getParameter("readerId");
+		String bookId = request.getParameter("bookId");
+		// 判断是否允许借书
+		boolean isPermitted = new ReaderDao().isPermitted(readerId);
+		if (isPermitted) {
+			try {
+				int days = Integer.parseInt(request.getParameter("days"));
+				boolean result = new BorrowDao().borrowBook(readerId, bookId,
+						days);
+				if (result) {
+					jsonObject.setStatus(1);
+					jsonObject.setMessage("借书成功");
+				} else {
+					jsonObject.setStatus(0);
+					jsonObject.setMessage("借阅失败");
+				}
+			} catch (Exception e) {
 				jsonObject.setStatus(0);
-				jsonObject.setMessage("修改密码失败");
+				jsonObject.setMessage("借阅天数必须是>=1的整数");
 			}
 		} else {
 			jsonObject.setStatus(0);
-			jsonObject.setMessage("密码错误");
+			jsonObject.setMessage("你可能因为某种原因被禁止借书，请联系管理员");
 		}
+
 		writer.write(jsonObject.toString());
 		writer.flush();
 		writer.close();

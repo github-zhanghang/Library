@@ -2,6 +2,7 @@ package com.library.servlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -9,12 +10,11 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.library.bean.ManagerBean;
 import com.library.bean.MyJsonObject;
-import com.library.dao.ManagerDao;
+import com.library.dao.CollectionDao;
 
-@WebServlet("/GetManagerByAccount")
-public class GetManagerByAccount extends HttpServlet {
+@WebServlet("/GetCollections")
+public class GetCollections extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
 	public void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -27,16 +27,21 @@ public class GetManagerByAccount extends HttpServlet {
 		PrintWriter writer = response.getWriter();
 		MyJsonObject jsonObject = new MyJsonObject();
 
-		String managerAccount = request.getParameter("managerAccount");
-		ManagerBean managerBean = new ManagerDao()
-				.getManagerByAccount(managerAccount);
-		if (managerBean == null) {
+		String readerId = request.getParameter("readerId");
+		try {
+			int page = Integer.parseInt(request.getParameter("page"));
+			Map<String, Object> map = new CollectionDao().getCollections(readerId, page);
+			if (map == null) {
+				jsonObject.setStatus(0);
+				jsonObject.setMessage("查询失败");
+			} else {
+				jsonObject.setStatus(1);
+				jsonObject.setMessage("查询成功");
+				jsonObject.setData(map);// 返回借阅信息
+			}
+		} catch (Exception e) {
 			jsonObject.setStatus(0);
-			jsonObject.setMessage("该用户不存在");
-		} else {
-			jsonObject.setStatus(1);
-			jsonObject.setMessage("查询成功");
-			jsonObject.setData(managerBean);// 返回用户信息
+			jsonObject.setMessage("查询失败，页数必须是>=1的数字");
 		}
 		writer.write(jsonObject.toString());
 		writer.flush();

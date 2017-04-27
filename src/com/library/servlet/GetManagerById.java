@@ -11,7 +11,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.library.bean.ManagerBean;
 import com.library.bean.MyJsonObject;
-import com.library.bean.ReaderBean;
 import com.library.dao.ManagerDao;
 
 @WebServlet("/GetManagerById")

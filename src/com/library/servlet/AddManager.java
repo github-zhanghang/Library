@@ -11,7 +11,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.library.bean.MyJsonObject;
 import com.library.dao.ManagerDao;
-import com.library.dao.ReaderDao;
 
 @WebServlet("/AddManager")
 public class AddManager extends HttpServlet {

@@ -9,12 +9,12 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.library.bean.ManagerBean;
 import com.library.bean.MyJsonObject;
-import com.library.dao.ManagerDao;
+import com.library.dao.BookDao;
+import com.library.dao.CollectionDao;
 
-@WebServlet("/GetManagerByAccount")
-public class GetManagerByAccount extends HttpServlet {
+@WebServlet("/CollectBook")
+public class CollectBook extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
 	public void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -27,16 +27,30 @@ public class GetManagerByAccount extends HttpServlet {
 		PrintWriter writer = response.getWriter();
 		MyJsonObject jsonObject = new MyJsonObject();
 
-		String managerAccount = request.getParameter("managerAccount");
-		ManagerBean managerBean = new ManagerDao()
-				.getManagerByAccount(managerAccount);
-		if (managerBean == null) {
+		String readerId = request.getParameter("readerId");
+		String bookName = request.getParameter("bookName");
+
+		boolean isBookExist = new BookDao().isBookExist(bookName);
+		if (!isBookExist) {
 			jsonObject.setStatus(0);
-			jsonObject.setMessage("该用户不存在");
+			jsonObject.setMessage("该书不存在");
 		} else {
-			jsonObject.setStatus(1);
-			jsonObject.setMessage("查询成功");
-			jsonObject.setData(managerBean);// 返回用户信息
+			boolean isCollected = new CollectionDao().isCollected(readerId,
+					bookName);
+			if (isCollected) {
+				jsonObject.setStatus(0);
+				jsonObject.setMessage("该书已经收藏");
+			} else {
+				boolean isSuccess = new CollectionDao().collectBook(readerId,
+						bookName);
+				if (isSuccess) {
+					jsonObject.setStatus(1);
+					jsonObject.setMessage("收藏成功");
+				} else {
+					jsonObject.setStatus(0);
+					jsonObject.setMessage("收藏失败");
+				}
+			}
 		}
 		writer.write(jsonObject.toString());
 		writer.flush();

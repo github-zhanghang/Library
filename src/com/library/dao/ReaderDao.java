@@ -255,7 +255,7 @@ public class ReaderDao {
 	public boolean login(String account, String password) {
 		mConnection = DBUtil.getConnection();
 		String sql = "select * from " + TableUtill.TABLE_READER
-				+ " where ReaderAccount =? and ReaderPassword=?";
+				+ " where ReaderAccount =? and ReaderPassword=? limit 1";
 		try {
 			mStatement = mConnection.prepareStatement(sql);
 			mStatement.setString(1, account);
@@ -313,6 +313,108 @@ public class ReaderDao {
 		try {
 			mStatement = mConnection.prepareStatement(sql);
 			mStatement.setString(1, newPassword);
+			mStatement.setString(2, account);
+			int lines = mStatement.executeUpdate();
+			if (lines == 1) {
+				return true;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			DBUtil.close(mStatement, mConnection, mResultSet);
+		}
+		return false;
+	}
+
+	/**
+	 * 是否允许借书
+	 * 
+	 * @param readerId
+	 * @return
+	 */
+	public boolean isPermitted(String readerId) {
+		mConnection = DBUtil.getConnection();
+		String sql = "select IsPermitted from " + TableUtill.TABLE_READER
+				+ " where ReaderId =? limit 1";
+		try {
+			mStatement = mConnection.prepareStatement(sql);
+			mStatement.setString(1, readerId);
+			mResultSet = mStatement.executeQuery();
+			if (mResultSet.next()) {
+				return mResultSet.getBoolean("IsPermitted");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			DBUtil.close(mStatement, mConnection, mResultSet);
+		}
+		return false;
+	}
+
+	/**
+	 * 设置是否允许借书
+	 * 
+	 * @param readerId
+	 * @return
+	 */
+	public boolean setPermitted(String readerId, boolean isPermitted) {
+		mConnection = DBUtil.getConnection();
+		String sql = "update " + TableUtill.TABLE_READER
+				+ " set IsPermitted=? where ReaderId =?";
+		try {
+			mStatement = mConnection.prepareStatement(sql);
+			mStatement.setBoolean(1, isPermitted);
+			mStatement.setString(2, readerId);
+			int lines = mStatement.executeUpdate();
+			if (lines == 1) {
+				return true;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			DBUtil.close(mStatement, mConnection, mResultSet);
+		}
+		return false;
+	}
+
+	/**
+	 * 是否允许登录
+	 * 
+	 * @param account
+	 * @return
+	 */
+	public boolean isEnable(String account) {
+		mConnection = DBUtil.getConnection();
+		String sql = "select IsEnable from " + TableUtill.TABLE_READER
+				+ " where ReaderAccount =? limit 1";
+		try {
+			mStatement = mConnection.prepareStatement(sql);
+			mStatement.setString(1, account);
+			mResultSet = mStatement.executeQuery();
+			if (mResultSet.next()) {
+				return mResultSet.getBoolean("IsEnable");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			DBUtil.close(mStatement, mConnection, mResultSet);
+		}
+		return false;
+	}
+
+	/**
+	 * 设置是否允许登录
+	 * 
+	 * @param account
+	 * @return
+	 */
+	public boolean setEnable(String account, boolean isEnable) {
+		mConnection = DBUtil.getConnection();
+		String sql = "update " + TableUtill.TABLE_READER
+				+ " set IsEnable=? where ReaderAccount =?";
+		try {
+			mStatement = mConnection.prepareStatement(sql);
+			mStatement.setBoolean(1, isEnable);
 			mStatement.setString(2, account);
 			int lines = mStatement.executeUpdate();
 			if (lines == 1) {

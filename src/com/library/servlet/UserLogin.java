@@ -31,8 +31,15 @@ public class UserLogin extends HttpServlet {
 
 		boolean isSuccess = new ReaderDao().login(account, password);
 		if (isSuccess) {
-			jsonObject.setStatus(1);
-			jsonObject.setMessage("登录成功");
+			// 判断是否允许登录
+			boolean isEnable = new ReaderDao().isEnable(account);
+			if (isEnable) {
+				jsonObject.setStatus(1);
+				jsonObject.setMessage("登录成功");
+			} else {
+				jsonObject.setStatus(0);
+				jsonObject.setMessage("你可能因为某种原因被禁止登录，请联系管理员");
+			}
 		} else {
 			jsonObject.setStatus(0);
 			jsonObject.setMessage("用户名或密码错误");
